@@ -1,6 +1,6 @@
 const FaQ = () => {
     return (
-        <section className="min-h-screen py-32 text-[#00193f]">
+        <section className="pt-25 text-[#00193f]">
             <div className="container mx-auto flex flex-col justify-center p-4 md:p-8">
                 <h2 className="mb-12 text-center text-4xl font-bold sm:text-5xl">Frequently Asked Questions</h2>
                 <div className="flex flex-col divide-y divide-gray-300 sm:px-8 lg:px-12 xl:px-32">
