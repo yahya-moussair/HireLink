@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'Specialization',
+        'profile_picture',
+        'resume',
     ];
 
     /**
@@ -44,5 +47,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function user () {
+        return $this->hasMany(Post::class);
     }
 }

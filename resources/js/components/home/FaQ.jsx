@@ -5,16 +5,6 @@ const FaQ = () => {
                 <h2 className="mb-12 text-center text-4xl font-bold sm:text-5xl">Frequently Asked Questions</h2>
                 <div className="flex flex-col divide-y divide-gray-300 sm:px-8 lg:px-12 xl:px-32">
                     <details>
-                        <summary className="cursor-pointer py-2 outline-none focus:underline">How does HireLink match me with jobs?</summary>
-                        <div className="px-4 pb-4">
-                            <p>
-                                Our AI-powered algorithm analyzes your skills, experience, and preferences to connect you with the most relevant job
-                                opportunities. Just complete your profile and let HireLink do the work.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details>
                         <summary className="cursor-pointer py-2 outline-none focus:underline">
                             Is it free to create a profile and apply for jobs?
                         </summary>

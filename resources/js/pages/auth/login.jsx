@@ -28,7 +28,7 @@ export default function Login({ status, canResetPassword }) {
             <div className="flex h-screen w-full items-center justify-center text-[#001940]">
                 <div className="mx-auto flex w-[30%] flex-col gap-10 rounded-xl px-5 py-8 shadow-lg">
                     <div className="flex flex-col items-center gap-5">
-                        <Link href={route('home')} className='flex justify-center'>
+                        <Link href={route('home')} className="flex justify-center">
                             <img src={Images.logo} className="w-[60%]" alt="" />
                         </Link>
                         <h1 className="text-center text-5xl font-semibold text-[#001940]">Log in</h1>
@@ -84,7 +84,12 @@ export default function Login({ status, canResetPassword }) {
                                 <Label htmlFor="remember">Remember me</Label>
                             </div>
 
-                            <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
+                            <Button
+                                type="submit"
+                                className="cursor-pointer rounded-lg bg-[#202b61]  text-white transition-all duration-300 hover:bg-[#2980d1] "
+                                tabIndex={4}
+                                disabled={processing}
+                            >
                                 {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                 Log in
                             </Button>
