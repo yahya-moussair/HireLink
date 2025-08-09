@@ -12,7 +12,7 @@ const Features = () => {
                                 key={index}
                                 className="h-[27rem] rounded-lg shadow-lg transition-all duration-300 md:h-[25rem] lg:h-[25rem] lg:hover:scale-105"
                             >
-                                <img src={image} className="h-[14rem] w-full rounded-t-lg" alt="" />
+                                <img src={image} className="h-[14rem] object-cover w-full rounded-t-lg" alt="" />
                                 <div className="flex flex-col gap-5 px-5 pt-8">
                                     <div className="flex gap-4">
                                         <Icon className="feature-icon text-[#00193f]" />

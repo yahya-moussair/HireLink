@@ -31,7 +31,7 @@ const Hero = () => {
                         </li>
                     </ul>
                     <Link href={route('register')}>
-                        <button className="w-full cursor-pointer rounded-lg bg-[#202b61] px-10 py-4 text-lg text-white transition-all duration-300 hover:bg-[#2980d1] md:w-fit lg:w-fit">
+                        <button className="ms-10 w-full cursor-pointer rounded-lg bg-[#202b61] px-10 py-4 text-lg text-white transition-all duration-300 hover:bg-[#2980d1] md:w-fit lg:w-fit">
                             Register Now
                         </button>
                     </Link>

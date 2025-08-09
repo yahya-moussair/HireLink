@@ -27,18 +27,50 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
+    // public function store(LoginRequest $request): RedirectResponse
+    // {
+    //     $request->authenticate();
+    //     $request->session()->regenerate();
+
+    //     if (auth()->user()->role === 'admin') {
+    //         return redirect()->route('admin.dashboard');
+    //     } else if (auth()->user()->role === 'user') {
+    //         # code...
+    //         return redirect()->route('user.dashboard');
+    //     } else if (auth()->user()->role === 'recruiter') {
+    //         # code...
+    //         return redirect()->route('recruiter.dashboard');
+    //     }
+
+    //     return redirect()->route('home');
+    // }
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $role = auth()->user()->role;
+
+        return match ($role) {
+            'admin'     => redirect()->route('admin.dashboard'),
+            'user'      => redirect()->route('user.dashboard'),
+            'recruiter' => redirect()->route('recruiter.dashboard'),
+            default     => redirect()->route('home'),
+        };
     }
 
     /**
      * Destroy an authenticated session.
      */
+    // public function destroy(Request $request): RedirectResponse
+    // {
+    //     Auth::guard('web')->logout();
+
+    //     $request->session()->invalidate();
+    //     $request->session()->regenerateToken();
+
+    //     return redirect('/');
+    // }
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
@@ -46,6 +78,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('home');
     }
 }

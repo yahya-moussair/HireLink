@@ -9,10 +9,12 @@ const Home = () => {
     return (
         <>
             <Navbar />
-            <Hero />
-            <Features />
-            <Testimonials />
-            <FaQ />
+            <div className="bg-[linear-gradient(135deg,#EAF4FF,#F5F6FA)]">
+                <Hero />
+                <Features />
+                <Testimonials />
+                <FaQ />
+            </div>
             <Footer />
         </>
     );

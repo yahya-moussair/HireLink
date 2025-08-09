@@ -4,39 +4,57 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BarChart3, Briefcase, Calendar, FileUser, LayoutGrid, MessageSquare, UsersIcon } from 'lucide-react';
 import AppLogo from './app-logo';
+import { Images } from '@/constant';
 
-const mainNavItems: NavItem[] = [
+const mainNavItems = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: '/admin',
         icon: LayoutGrid,
     },
-];
-
-const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        title: 'Users',
+        href: '/admin/users',
+        icon: UsersIcon,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'Recruiters',
+        href: '/admin/recruiters',
+        icon: FileUser,
+    },
+    {
+        title: 'Job Offers',
+        href: '/admin/jobs',
+        icon: Briefcase,
+    },
+    {
+        title: 'Reports',
+        href: '/admin/reports',
+        icon: BarChart3,
+    },
+    {
+        title: 'Chat Moderation',
+        href: '/admin/chat',
+        icon: MessageSquare,
+    },
+    {
+        title: 'Calendar',
+        href: '/admin/calendar',
+        icon: Calendar,
     },
 ];
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="inset" className='bg-[#00193f] text-white'>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
-                                <AppLogo />
+                            <Link href="/admin" prefetch>
+                                <img src={Images.whiteLogo} className='w-[10rem]' alt="" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -48,7 +66,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

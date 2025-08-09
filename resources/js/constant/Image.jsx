@@ -1,5 +1,7 @@
 import logo from '../public/images/logo.png';
 import logoIcon from '../public/images/logoShortCut.png';
+import whiteLogo from '../public/images/white-logo.png';
+import whiteLogoIcon from '../public/images/white-short-logo.png';
 import hero from '../public/images/hero.jpg';
 import apply from '../public/images/apply.jpg';
 import creer from '../public/images/creer.jpg';
@@ -15,6 +17,8 @@ import fouthprofile from '../public/images/profile4.jpg';
 const Images = {
     logo,
     logoIcon,
+    whiteLogo,
+    whiteLogoIcon,
     hero,
     apply,
     creer,

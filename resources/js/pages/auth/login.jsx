@@ -25,8 +25,8 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <>
-            <div className="flex h-screen w-full items-center justify-center text-[#001940]">
-                <div className="mx-auto flex w-[30%] flex-col gap-10 rounded-xl px-5 py-8 shadow-lg">
+            <div className="flex h-screen w-full bg-[linear-gradient(135deg,_#EAF4FF,_#F5F6FA)] items-center justify-center text-[#001940]">
+                <div className="mx-auto flex w-[30%] flex-col gap-10 rounded-xl px-5 py-8 shadow-lg bg-[linear-gradient(135deg,_#EAF4FF,_#F5F6FA)]">
                     <div className="flex flex-col items-center gap-5">
                         <Link href={route('home')} className="flex justify-center">
                             <img src={Images.logo} className="w-[60%]" alt="" />
