@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search, Eye, Edit, Trash2, Filter } from 'lucide-react';
 import { useState } from 'react';
@@ -141,7 +142,15 @@ const UsersIndex = ({ users, filters }) => {
                                 <TableBody>
                                     {users.data.map((user) => (
                                         <TableRow key={user.id}>
-                                            <TableCell className="font-medium">{user.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center">
+                                                    <Avatar className="mr-2">
+                                                        <AvatarImage src={user.profile_picture_url} alt={user.name} />
+                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    {user.name}
+                                                </div>
+                                            </TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
                                                 <Badge className={getRoleBadge(user.role)}>

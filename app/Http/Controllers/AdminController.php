@@ -15,7 +15,49 @@ class AdminController extends Controller
      */
     public function index()
     {
-        return Inertia::render('dashboard/AdminDashboard');
+        // Get real-time platform statistics
+        $stats = [
+            'totalUsers' => User::count(),
+            'activeRecruiters' => User::where('role', 'recruiter')->whereNotNull('email_verified_at')->count(),
+            'pendingRecruiters' => User::where('role', 'recruiter')->whereNull('email_verified_at')->count(),
+            'totalAdmins' => User::where('role', 'admin')->count(),
+            'totalRegularUsers' => User::where('role', 'user')->count(),
+        ];
+
+        // Get recent user registrations
+        $recentRegistrations = User::orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'time' => $user->created_at->diffForHumans(),
+                    'type' => 'new_user',
+                    'color' => $user->role === 'recruiter' ? 'green' : ($user->role === 'admin' ? 'red' : 'blue')
+                ];
+            });
+
+        // Get recent activity (user updates, role changes, etc.)
+        $recentActivity = collect($recentRegistrations)->take(3)->toArray();
+
+        // Add some system events (you can expand this with actual activity logging)
+        if ($recentActivity) {
+            array_unshift($recentActivity, [
+                'type' => 'system',
+                'message' => 'Platform statistics updated',
+                'time' => now()->subMinutes(5)->diffForHumans(),
+                'color' => 'purple'
+            ]);
+        }
+
+        return Inertia::render('dashboard/AdminDashboard', [
+            'stats' => $stats,
+            'recentActivity' => $recentActivity,
+            'recentRegistrations' => $recentRegistrations
+        ]);
     }
 
     public function users(Request $request)
@@ -35,6 +77,12 @@ class AdminController extends Controller
         }
         
         $users = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        // Add profile_picture_url attribute to each user
+        $users->getCollection()->transform(function ($user) {
+            $user->profile_picture_url = $user->profile_picture_url;
+            return $user;
+        });
         
         return Inertia::render('admin/Users/Index', [
             'users' => $users,
@@ -67,6 +115,9 @@ class AdminController extends Controller
 
     public function showUser(User $user)
     {
+        // Add profile_picture_url attribute
+        $user->profile_picture_url = $user->profile_picture_url;
+        
         return Inertia::render('admin/Users/Show', [
             'user' => $user
         ]);
@@ -264,4 +315,100 @@ class AdminController extends Controller
             ->with('success', "Recruiter {$user->name} has been suspended successfully.");
     }
 
+    public function reports()
+    {
+        // Get platform statistics
+        $stats = [
+            'totalUsers' => User::count(),
+            'activeRecruiters' => User::where('role', 'recruiter')->whereNotNull('email_verified_at')->count(),
+            'pendingRecruiters' => User::where('role', 'recruiter')->whereNull('email_verified_at')->count(),
+            'totalJobs' => 0, // Placeholder - will be updated when job system is implemented
+            'totalApplications' => 0, // Placeholder - will be updated when application system is implemented
+        ];
+
+        // Get user growth data for the last 6 months
+        $userGrowthData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $startOfMonth = $date->copy()->startOfMonth();
+            $endOfMonth = $date->copy()->endOfMonth();
+            
+            $usersCount = User::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+            $recruitersCount = User::where('role', 'recruiter')
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->count();
+            
+            $userGrowthData[] = [
+                'month' => $date->format('M'),
+                'users' => $usersCount,
+                'recruiters' => $recruitersCount,
+                'total' => $usersCount + $recruitersCount
+            ];
+        }
+
+        // Get role distribution
+        $roleDistribution = [
+            [
+                'role' => 'Users',
+                'count' => User::where('role', 'user')->count(),
+                'percentage' => 0,
+                'color' => 'bg-green-500'
+            ],
+            [
+                'role' => 'Recruiters',
+                'count' => User::where('role', 'recruiter')->count(),
+                'percentage' => 0,
+                'color' => 'bg-blue-500'
+            ],
+            [
+                'role' => 'Admins',
+                'count' => User::where('role', 'admin')->count(),
+                'percentage' => 0,
+                'color' => 'bg-red-500'
+            ],
+        ];
+
+        // Calculate percentages
+        $totalUsers = $stats['totalUsers'];
+        if ($totalUsers > 0) {
+            foreach ($roleDistribution as &$role) {
+                $role['percentage'] = round(($role['count'] / $totalUsers) * 100);
+            }
+        }
+
+        // Get recent activity from actual user data
+        $recentActivity = User::orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($user) {
+                $lastUpdate = $user->updated_at;
+                $isNew = $user->created_at->equalTo($user->updated_at);
+                
+                return [
+                    'type' => $isNew ? 'new_user' : 'profile_updated',
+                    'message' => $isNew ? "New {$user->role} registered: {$user->name}" : "Profile updated: {$user->name}",
+                    'time' => $lastUpdate->diffForHumans(),
+                    'color' => $user->role === 'recruiter' ? 'green' : ($user->role === 'admin' ? 'red' : 'blue'),
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'user_role' => $user->role
+                ];
+            })
+            ->toArray();
+
+        // Add system events
+        array_unshift($recentActivity, [
+            'type' => 'system',
+            'message' => 'Platform statistics updated',
+            'time' => now()->subMinutes(5)->diffForHumans(),
+            'color' => 'purple'
+        ]);
+
+        return Inertia::render('admin/Reports/Index', [
+            'stats' => $stats,
+            'recentActivity' => $recentActivity,
+            'userGrowthData' => $userGrowthData,
+            'roleDistribution' => $roleDistribution
+        ]);
+    }
 }

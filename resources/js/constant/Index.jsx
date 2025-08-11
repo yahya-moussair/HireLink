@@ -1,3 +1,4 @@
 import Images from './Image';
 
-export {Images}
+export { Images };
+export default Images;

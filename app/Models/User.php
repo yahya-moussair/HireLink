@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -25,7 +27,12 @@ class User extends Authenticatable
         'Specialization',
         'profile_picture',
         'resume',
-        'role'
+        'role',
+        'two_factor_code',
+        'two_factor_expires_at',
+        'avatar',
+        'dark_mode',
+        'messenger_color'
     ];
 
     /**
@@ -36,6 +43,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     /**
@@ -48,9 +57,102 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_expires_at' => 'datetime',
         ];
     }
-    public function user () {
+
+    /**
+     * Get the posts for the user.
+     */
+    public function posts(): HasMany
+    {
         return $this->hasMany(Post::class);
+    }
+
+    /**
+     * Get the jobs posted by the recruiter.
+     */
+    public function postedJobs(): HasMany
+    {
+        return $this->hasMany(Job::class, 'recruiter_id');
+    }
+
+    /**
+     * Get the job applications by the user.
+     */
+    public function jobApplications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
+    /**
+     * Check if user is admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is recruiter.
+     */
+    public function isRecruiter(): bool
+    {
+        return $this->role === 'recruiter';
+    }
+
+    /**
+     * Check if user is regular user.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Check if user has 2FA enabled.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_code !== null;
+    }
+
+    /**
+     * Check if 2FA code is expired.
+     */
+    public function isTwoFactorExpired(): bool
+    {
+        return $this->two_factor_expires_at && now()->isAfter($this->two_factor_expires_at);
+    }
+
+    /**
+     * Generate new 2FA code.
+     */
+    public function generateTwoFactorCode(): void
+    {
+        $this->two_factor_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $this->two_factor_expires_at = now()->addMinutes(10);
+        $this->save();
+    }
+
+    /**
+     * Clear 2FA code.
+     */
+    public function clearTwoFactorCode(): void
+    {
+        $this->two_factor_code = null;
+        $this->two_factor_expires_at = null;
+        $this->save();
+    }
+
+    /**
+     * Get the user's profile picture URL.
+     */
+    public function getProfilePictureUrlAttribute()
+    {
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return null;
     }
 }

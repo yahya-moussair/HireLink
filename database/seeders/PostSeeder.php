@@ -20,7 +20,6 @@ class PostSeeder extends Seeder
                 'title' => 'title' . $i,
                 'description' => 'description' . $i,
                 'likes' => random_int(0 , 100),
-                'likes' => random_int(0 , 100),
                 'user_id' => User::inRandomOrder()->first()->id,
             ]);
         }

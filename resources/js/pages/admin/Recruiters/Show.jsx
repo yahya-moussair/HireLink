@@ -1,52 +1,49 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Edit, Trash2, User, Mail, Calendar, Shield, CheckCircle, XCircle, Clock, Briefcase } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Calendar, User, Briefcase, Shield, CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
-const ShowRecruiter = ({ recruiter }) => {
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [showActionDialog, setShowActionDialog] = useState(false);
+const breadcrumbs = [
+    {
+        title: 'Admin Dashboard',
+        href: '/admin',
+    },
+    {
+        title: 'Recruiters Management',
+        href: '/admin/recruiters',
+    },
+    {
+        title: 'Recruiter Details',
+        href: '#',
+    },
+];
+
+const RecruiterShow = ({ recruiter }) => {
+    const [actionRecruiter, setActionRecruiter] = useState(null);
     const [actionType, setActionType] = useState('');
-    const { delete: destroy, post, processing } = useForm();
-
-    const breadcrumbs = [
-        {
-            title: 'Admin Dashboard',
-            href: '/admin',
-        },
-        {
-            title: 'Recruiters Management',
-            href: '/admin/recruiters',
-        },
-        {
-            title: recruiter.name,
-            href: `/admin/recruiters/${recruiter.id}`,
-        },
-    ];
-
-    const handleDelete = () => {
-        destroy(route('admin.recruiters.destroy', recruiter.id), {
-            onSuccess: () => {
-                setShowDeleteDialog(false);
-            },
-        });
-    };
 
     const handleAction = () => {
-        const routeName = actionType === 'approve' ? 'admin.recruiters.approve' : 'admin.recruiters.suspend';
-        post(route(routeName, recruiter.id), {}, {
-            onSuccess: () => {
-                setShowActionDialog(false);
-                setActionType('');
-            },
-        });
+        if (actionRecruiter && actionType) {
+            const routeName = actionType === 'approve' ? 'admin.recruiters.approve' : 'admin.recruiters.suspend';
+            
+            router.post(route(routeName, actionRecruiter.id), {}, {
+                onSuccess: () => {
+                    setActionRecruiter(null);
+                    setActionType('');
+                    router.reload();
+                },
+                onError: (errors) => {
+                    console.error('Action failed:', errors);
+                }
+            });
+        }
     };
 
-    const getStatusBadge = () => {
+    const getStatusBadge = (recruiter) => {
         if (recruiter.email_verified_at) {
             return <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" />
@@ -54,7 +51,7 @@ const ShowRecruiter = ({ recruiter }) => {
             </Badge>;
         } else {
             return <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
+                <XCircle className="h-3 w-3" />
                 Pending Approval
             </Badge>;
         }
@@ -83,62 +80,72 @@ const ShowRecruiter = ({ recruiter }) => {
                                 Edit Recruiter
                             </Button>
                         </Link>
-                        <Button
-                            variant="destructive"
-                            onClick={() => setShowDeleteDialog(true)}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Recruiter
-                        </Button>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
+                    {/* Main Recruiter Info */}
+                    <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
+                                    <Briefcase className="h-5 w-5 text-blue-600" />
                                     Recruiter Information
                                 </CardTitle>
-                                <CardDescription>Personal details and account information</CardDescription>
+                                <CardDescription>Profile and account details</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Full Name</label>
-                                        <p className="text-lg font-semibold text-gray-900 mt-1">{recruiter.name}</p>
+                                        <label className="text-sm font-medium text-gray-700">Full Name</label>
+                                        <p className="text-gray-900 mt-1">{recruiter.name}</p>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Email Address</label>
-                                        <p className="text-lg text-gray-900 mt-1 flex items-center gap-2">
-                                            <Mail className="h-4 w-4" />
+                                        <label className="text-sm font-medium text-gray-700">Email Address</label>
+                                        <p className="text-gray-900 mt-1 flex items-center gap-2">
+                                            <Mail className="h-4 w-4 text-gray-500" />
                                             {recruiter.email}
                                         </p>
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Status</label>
+                                        <label className="text-sm font-medium text-gray-700">Role</label>
                                         <div className="mt-1">
-                                            {getStatusBadge()}
+                                            <Badge className="bg-blue-100 text-blue-800">
+                                                Recruiter
+                                            </Badge>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Specialization</label>
-                                        <p className="text-lg text-gray-900 mt-1 flex items-center gap-2">
-                                            <Briefcase className="h-4 w-4" />
-                                            {recruiter.Specialization || 'Not specified'}
-                                        </p>
+                                        <label className="text-sm font-medium text-gray-700">Account Status</label>
+                                        <div className="mt-1">
+                                            {getStatusBadge(recruiter)}
+                                        </div>
                                     </div>
                                 </div>
+                                
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700">Specialization</label>
+                                    <p className="text-gray-900 mt-1 flex items-center gap-2">
+                                        <Briefcase className="h-4 w-4 text-gray-500" />
+                                        {recruiter.Specialization || 'Not specified'}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Calendar className="h-5 w-5 text-purple-600" />
+                                    Account Activity
+                                </CardTitle>
+                                <CardDescription>Registration and approval information</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Member Since</label>
-                                        <p className="text-lg text-gray-900 mt-1 flex items-center gap-2">
-                                            <Calendar className="h-4 w-4" />
+                                        <label className="text-sm font-medium text-gray-700">Member Since</label>
+                                        <p className="text-gray-900 mt-1">
                                             {new Date(recruiter.created_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -147,8 +154,8 @@ const ShowRecruiter = ({ recruiter }) => {
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                                        <p className="text-lg text-gray-900 mt-1">
+                                        <label className="text-sm font-medium text-gray-700">Last Updated</label>
+                                        <p className="text-gray-900 mt-1">
                                             {new Date(recruiter.updated_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -157,12 +164,11 @@ const ShowRecruiter = ({ recruiter }) => {
                                         </p>
                                     </div>
                                 </div>
-
+                                
                                 {recruiter.email_verified_at && (
                                     <div>
-                                        <label className="text-sm font-medium text-gray-500">Approved On</label>
-                                        <p className="text-lg text-gray-900 mt-1 flex items-center gap-2">
-                                            <CheckCircle className="h-4 w-4 text-green-600" />
+                                        <label className="text-sm font-medium text-gray-700">Approved On</label>
+                                        <p className="text-gray-900 mt-1">
                                             {new Date(recruiter.email_verified_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -174,134 +180,102 @@ const ShowRecruiter = ({ recruiter }) => {
                             </CardContent>
                         </Card>
 
-                        <Card className="mt-6">
+                        <Card>
                             <CardHeader>
-                                <CardTitle>Recruiter Activity</CardTitle>
-                                <CardDescription>Platform activity and statistics</CardDescription>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Shield className="h-5 w-5 text-green-600" />
+                                    Recruiter Privileges
+                                </CardTitle>
+                                <CardDescription>What this recruiter can do on the platform</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">0</div>
-                                        <div className="text-sm text-blue-800">Job Posts</div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm">Post and manage job offers</span>
                                     </div>
-                                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">0</div>
-                                        <div className="text-sm text-green-800">Applications</div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm">View and manage job applications</span>
                                     </div>
-                                    <div className="text-center p-4 bg-purple-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-purple-600">0</div>
-                                        <div className="text-sm text-purple-800">Interviews</div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm">Access candidate profiles</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm">Schedule interviews</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm">Communicate with candidates</span>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
 
-                    <div>
+                    {/* Sidebar */}
+                    <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Quick Actions</CardTitle>
-                                <CardDescription>Common recruiter management tasks</CardDescription>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Shield className="h-5 w-5 text-green-600" />
+                                    Quick Actions
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <Link href={route('admin.recruiters.edit', recruiter.id)} className="block">
+                                <Link href={route('admin.recruiters.edit', recruiter.id)} className="w-full">
                                     <Button variant="outline" className="w-full justify-start">
                                         <Edit className="h-4 w-4 mr-2" />
-                                        Edit Profile
+                                        Edit Recruiter
                                     </Button>
                                 </Link>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <Mail className="h-4 w-4 mr-2" />
-                                    Send Message
-                                </Button>
+                                
                                 {!recruiter.email_verified_at ? (
-                                    <Button
-                                        variant="outline"
+                                    <Button 
+                                        variant="outline" 
                                         className="w-full justify-start text-green-600 hover:text-green-700"
                                         onClick={() => {
+                                            setActionRecruiter(recruiter);
                                             setActionType('approve');
-                                            setShowActionDialog(true);
                                         }}
                                     >
                                         <CheckCircle className="h-4 w-4 mr-2" />
                                         Approve Recruiter
                                     </Button>
                                 ) : (
-                                    <Button
-                                        variant="outline"
+                                    <Button 
+                                        variant="outline" 
                                         className="w-full justify-start text-orange-600 hover:text-orange-700"
                                         onClick={() => {
+                                            setActionRecruiter(recruiter);
                                             setActionType('suspend');
-                                            setShowActionDialog(true);
                                         }}
                                     >
                                         <XCircle className="h-4 w-4 mr-2" />
                                         Suspend Recruiter
                                     </Button>
                                 )}
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-red-600 hover:text-red-700"
-                                    onClick={() => setShowDeleteDialog(true)}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete Recruiter
-                                </Button>
                             </CardContent>
                         </Card>
 
-                        <Card className="mt-6">
+                        <Card>
                             <CardHeader>
-                                <CardTitle>Account Status</CardTitle>
-                                <CardDescription>Current account information</CardDescription>
+                                <CardTitle>Recruiter ID</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Account Status</span>
-                                    {getStatusBadge()}
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Account Type</span>
-                                    <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
-                                        <Shield className="h-3 w-3" />
-                                        Recruiter
-                                    </Badge>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Recruiter ID</span>
-                                    <span className="text-sm text-gray-600">#{recruiter.id}</span>
-                                </div>
+                            <CardContent>
+                                <p className="text-sm text-gray-500 font-mono">{recruiter.id}</p>
                             </CardContent>
                         </Card>
                     </div>
                 </div>
             </div>
 
-            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Delete Recruiter</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete {recruiter.name}? This action cannot be undone and will permanently remove all recruiter data and associated job posts.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={processing}
-                        >
-                            {processing ? 'Deleting...' : 'Delete Recruiter'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+            <Dialog open={!!actionRecruiter} onOpenChange={() => {
+                setActionRecruiter(null);
+                setActionType('');
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
@@ -309,24 +283,26 @@ const ShowRecruiter = ({ recruiter }) => {
                         </DialogTitle>
                         <DialogDescription>
                             {actionType === 'approve' 
-                                ? `Are you sure you want to approve ${recruiter.name}? They will gain full recruiter access and be able to post jobs.`
-                                : `Are you sure you want to suspend ${recruiter.name}? They will lose recruiter privileges and won't be able to post new jobs.`
+                                ? `Are you sure you want to approve ${actionRecruiter?.name}? They will gain full recruiter access and be able to post job offers.`
+                                : `Are you sure you want to suspend ${actionRecruiter?.name}? They will lose recruiter privileges and won't be able to post new jobs.`
                             }
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowActionDialog(false)}>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setActionRecruiter(null);
+                                setActionType('');
+                            }}
+                        >
                             Cancel
                         </Button>
                         <Button
                             variant={actionType === 'approve' ? 'default' : 'destructive'}
                             onClick={handleAction}
-                            disabled={processing}
                         >
-                            {processing 
-                                ? (actionType === 'approve' ? 'Approving...' : 'Suspending...')
-                                : (actionType === 'approve' ? 'Approve Recruiter' : 'Suspend Recruiter')
-                            }
+                            {actionType === 'approve' ? 'Approve Recruiter' : 'Suspend Recruiter'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -335,4 +311,4 @@ const ShowRecruiter = ({ recruiter }) => {
     );
 };
 
-export default ShowRecruiter;
+export default RecruiterShow;

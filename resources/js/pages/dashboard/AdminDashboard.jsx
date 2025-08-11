@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, UserCheck, Briefcase, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, Briefcase, BarChart3, Clock, Shield } from 'lucide-react';
 
 const breadcrumbs = [
     {
@@ -10,7 +10,7 @@ const breadcrumbs = [
     },
 ];
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ stats, recentActivity, recentRegistrations }) => {
     const { auth } = usePage().props;
     
     const getDynamicSubtitle = () => {
@@ -29,10 +29,10 @@ const AdminDashboard = () => {
         return `${greeting}, ${userName}! Monitor and manage your platform efficiently`;
     };
 
-    const stats = [
+    const dashboardStats = [
         {
             title: 'Total Users',
-            value: '1,234',
+            value: stats?.totalUsers?.toLocaleString() || '0',
             description: 'Active platform users',
             icon: Users,
             color: 'text-blue-600',
@@ -40,29 +40,41 @@ const AdminDashboard = () => {
         },
         {
             title: 'Active Recruiters',
-            value: '89',
+            value: stats?.activeRecruiters?.toLocaleString() || '0',
             description: 'Verified recruiters',
             icon: UserCheck,
             color: 'text-green-600',
             bgColor: 'bg-green-50',
         },
         {
-            title: 'Job Offers',
-            value: '456',
-            description: 'Published positions',
-            icon: Briefcase,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-50',
+            title: 'Pending Recruiters',
+            value: stats?.pendingRecruiters?.toLocaleString() || '0',
+            description: 'Awaiting approval',
+            icon: Clock,
+            color: 'text-yellow-600',
+            bgColor: 'bg-yellow-50',
         },
         {
-            title: 'Applications',
-            value: '2,891',
-            description: 'Total applications',
-            icon: BarChart3,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-50',
+            title: 'Administrators',
+            value: stats?.totalAdmins?.toLocaleString() || '0',
+            description: 'System administrators',
+            icon: Shield,
+            color: 'text-red-600',
+            bgColor: 'bg-red-50',
         },
     ];
+
+    const getActivityColor = (color) => {
+        const colorMap = {
+            'green': 'bg-green-500',
+            'blue': 'bg-blue-500',
+            'purple': 'bg-purple-500',
+            'red': 'bg-red-500',
+            'orange': 'bg-orange-500',
+            'yellow': 'bg-yellow-500'
+        };
+        return colorMap[color] || 'bg-gray-500';
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -77,7 +89,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {stats.map((stat) => {
+                    {dashboardStats.map((stat) => {
                         const Icon = stat.icon;
                         return (
                             <Card key={stat.title} className="hover:shadow-lg transition-shadow">
@@ -106,62 +118,90 @@ const AdminDashboard = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">New recruiter registered</p>
-                                        <p className="text-xs text-gray-500">2 minutes ago</p>
+                                {recentActivity && recentActivity.length > 0 ? (
+                                    recentActivity.map((activity, index) => (
+                                        <div key={index} className="flex items-center space-x-3">
+                                            <div className={`w-2 h-2 ${getActivityColor(activity.color)} rounded-full`}></div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">{activity.message}</p>
+                                                <p className="text-xs text-gray-500">{activity.time}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <p className="text-gray-500">No recent activity</p>
                                     </div>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">Job offer published</p>
-                                        <p className="text-xs text-gray-500">15 minutes ago</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">User profile updated</p>
-                                        <p className="text-xs text-gray-500">1 hour ago</p>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Quick Actions</CardTitle>
-                            <CardDescription>Common administrative tasks</CardDescription>
+                            <CardTitle>Recent Registrations</CardTitle>
+                            <CardDescription>Latest user registrations on the platform</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <Users className="h-5 w-5 text-blue-600 mb-2" />
-                                    <p className="font-medium text-sm">Manage Users</p>
-                                    <p className="text-xs text-gray-500">View and edit users</p>
-                                </button>
-                                <button className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <UserCheck className="h-5 w-5 text-green-600 mb-2" />
-                                    <p className="font-medium text-sm">Approve Recruiters</p>
-                                    <p className="text-xs text-gray-500">Review applications</p>
-                                </button>
-                                <button className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <Briefcase className="h-5 w-5 text-purple-600 mb-2" />
-                                    <p className="font-medium text-sm">Job Moderation</p>
-                                    <p className="text-xs text-gray-500">Review job posts</p>
-                                </button>
-                                <button className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <BarChart3 className="h-5 w-5 text-orange-600 mb-2" />
-                                    <p className="font-medium text-sm">View Reports</p>
-                                    <p className="text-xs text-gray-500">Analytics & insights</p>
-                                </button>
+                            <div className="space-y-4">
+                                {recentRegistrations && recentRegistrations.length > 0 ? (
+                                    recentRegistrations.map((user) => (
+                                        <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                            <div className="flex items-center space-x-3">
+                                                <div className={`w-3 h-3 ${getActivityColor(user.color)} rounded-full`}></div>
+                                                <div>
+                                                    <p className="text-sm font-medium">{user.name}</p>
+                                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                                                    {user.role}
+                                                </span>
+                                                <p className="text-xs text-gray-500 mt-1">{user.time}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <p className="text-gray-500">No recent registrations</p>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Quick Actions</CardTitle>
+                        <CardDescription>Common administrative tasks</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Link href={route('admin.users.index')} className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+                                <Users className="h-5 w-5 text-blue-600 mb-2" />
+                                <p className="font-medium text-sm">Manage Users</p>
+                                <p className="text-xs text-gray-500">View and edit users</p>
+                            </Link>
+                            <Link href={route('admin.recruiters.index')} className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+                                <UserCheck className="h-5 w-5 text-green-600 mb-2" />
+                                <p className="font-medium text-sm">Manage Recruiters</p>
+                                <p className="text-xs text-gray-500">Review and approve</p>
+                            </Link>
+                            <Link href={route('admin.reports.index')} className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+                                <BarChart3 className="h-5 w-5 text-orange-600 mb-2" />
+                                <p className="font-medium text-sm">View Reports</p>
+                                <p className="text-xs text-gray-500">Analytics & insights</p>
+                            </Link>
+                            <Link href={route('admin.users.create')} className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+                                <Users className="h-5 w-5 text-purple-600 mb-2" />
+                                <p className="font-medium text-sm">Add New User</p>
+                                <p className="text-xs text-gray-500">Create user account</p>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </AppLayout>
     );
