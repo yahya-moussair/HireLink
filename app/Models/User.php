@@ -155,4 +155,61 @@ class User extends Authenticatable
         }
         return null;
     }
+
+    /**
+     * Get the interviews where the user is the recruiter.
+     */
+    public function recruiterInterviews(): HasMany
+    {
+        return $this->hasMany(Interview::class, 'recruiter_id');
+    }
+
+    /**
+     * Get the interviews where the user is the candidate.
+     */
+    public function candidateInterviews(): HasMany
+    {
+        return $this->hasMany(Interview::class, 'candidate_id');
+    }
+
+    /**
+     * Get all interviews for the user (both as recruiter and candidate).
+     */
+    public function interviews()
+    {
+        return Interview::where('recruiter_id', $this->id)
+                       ->orWhere('candidate_id', $this->id);
+    }
+
+    /**
+     * Get the messages sent by the user.
+     */
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(\App\Models\ChMessage::class, 'from_id');
+    }
+
+    /**
+     * Get the messages received by the user.
+     */
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(\App\Models\ChMessage::class, 'to_id');
+    }
+
+    /**
+     * Get the user's favorites.
+     */
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(\App\Models\ChFavorite::class, 'user_id');
+    }
+
+    /**
+     * Get the user's favorite conversations.
+     */
+    public function favoriteConversations(): BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\ChMessage::class, 'ch_favorites', 'user_id', 'favorite_id');
+    }
 }

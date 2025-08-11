@@ -7,10 +7,105 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
 
 Route::get('/', function () {
     return Inertia::render('Home/Home');
 })->name('home');
+
+// Test email route (remove in production)
+Route::get('/test-email', function () {
+    try {
+        // Create a test interview
+        $testInterview = new \App\Models\Interview([
+            'title' => 'Test Interview',
+            'scheduled_at' => now()->addDay(),
+            'type' => 'online',
+            'duration' => 60,
+            'meeting_link' => 'https://meet.google.com/test',
+            'status' => 'scheduled'
+        ]);
+        
+        // Create test user
+        $testUser = new \App\Models\User([
+            'name' => 'Test Candidate',
+            'email' => 'test@example.com'
+        ]);
+        
+        $testInterview->candidate = $testUser;
+        $testInterview->recruiter = new \App\Models\User(['name' => 'Test Recruiter']);
+        $testInterview->jobApplication = new \App\Models\JobApplication();
+        $testInterview->jobApplication->job = new \App\Models\Job([
+            'title' => 'Test Job',
+            'company_name' => 'Test Company'
+        ]);
+        
+        Mail::to('test@example.com')->send(new \App\Mail\InterviewScheduled($testInterview));
+        
+        return response()->json(['message' => 'Test email sent successfully! Check Mailhog at http://localhost:8025']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.email');
+
+// Test interviews route (remove in production)
+Route::get('/test-interviews', function () {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Not authenticated'], 401);
+        }
+        
+        $interviews = \App\Models\Interview::where('recruiter_id', $user->id)
+            ->with(['candidate', 'jobApplication.job'])
+            ->latest('scheduled_at')
+            ->get();
+        
+        return response()->json([
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'interviews_count' => $interviews->count(),
+            'interviews' => $interviews->toArray()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.interviews');
+
+// Test cancellation email route (remove in production)
+Route::get('/test-cancellation-email', function () {
+    try {
+        // Create a test interview
+        $testInterview = new \App\Models\Interview([
+            'title' => 'Test Interview Cancelled',
+            'scheduled_at' => now()->addDay(),
+            'type' => 'online',
+            'duration' => 60,
+            'meeting_link' => 'https://meet.google.com/test',
+            'status' => 'cancelled'
+        ]);
+        
+        // Create test user
+        $testUser = new \App\Models\User([
+            'name' => 'Test Candidate',
+            'email' => 'test@example.com'
+        ]);
+        
+        $testInterview->candidate = $testUser;
+        $testInterview->recruiter = new \App\Models\User(['name' => 'Test Recruiter']);
+        $testInterview->jobApplication = new \App\Models\JobApplication();
+        $testInterview->jobApplication->job = new \App\Models\Job([
+            'title' => 'Test Job',
+            'company_name' => 'Test Company'
+        ]);
+        
+        Mail::to('test@example.com')->send(new \App\Mail\InterviewCancelled($testInterview));
+        
+        return response()->json(['message' => 'Cancellation email sent successfully! Check Mailhog at http://localhost:8025']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.cancellation.email');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('dashboard', function () {
@@ -109,6 +204,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Analytics routes
         Route::get('recruiter/analytics', [RecruiterController::class, 'analytics'])->name('analytics.index');
+        
+        // Candidate search and profile routes
+        Route::get('recruiter/candidates/search', [RecruiterController::class, 'searchCandidates'])->name('candidates.search');
+        Route::get('recruiter/candidates/{candidate}/profile', [RecruiterController::class, 'viewCandidateProfile'])->name('candidates.profile');
+        
+        // Interview and hiring routes
+        Route::post('recruiter/applications/{application}/schedule-interview', [RecruiterController::class, 'scheduleInterview'])->name('applications.schedule-interview');
+        Route::post('recruiter/applications/{application}/accept', [RecruiterController::class, 'acceptCandidate'])->name('applications.accept');
+        Route::post('recruiter/applications/{application}/reject', [RecruiterController::class, 'rejectCandidate'])->name('applications.reject');
+        
+        // Calendar routes
+        Route::get('recruiter/calendar/interviews', [RecruiterController::class, 'getInterviewCalendar'])->name('calendar.interviews');
+        
+        // Interview routes
+        Route::get('recruiter/interviews', [\App\Http\Controllers\InterviewController::class, 'index'])->name('interviews.index');
+        Route::get('recruiter/interviews/create/{application}', [\App\Http\Controllers\InterviewController::class, 'create'])->name('interviews.create');
+        Route::post('recruiter/interviews/{application}', [\App\Http\Controllers\InterviewController::class, 'store'])->name('interviews.store');
+        Route::get('recruiter/interviews/{interview}', [\App\Http\Controllers\InterviewController::class, 'show'])->name('interviews.show');
+        Route::get('recruiter/interviews/{interview}/edit', [\App\Http\Controllers\InterviewController::class, 'edit'])->name('interviews.edit');
+        Route::put('recruiter/interviews/{interview}', [\App\Http\Controllers\InterviewController::class, 'update'])->name('interviews.update');
+        Route::delete('recruiter/interviews/{interview}', [\App\Http\Controllers\InterviewController::class, 'destroy'])->name('interviews.destroy');
+        Route::get('recruiter/interviews/calendar', [\App\Http\Controllers\InterviewController::class, 'calendar'])->name('interviews.calendar');
+        Route::get('recruiter/interviews/today', [\App\Http\Controllers\InterviewController::class, 'today'])->name('interviews.today');
+        Route::get('recruiter/interviews/upcoming', [\App\Http\Controllers\InterviewController::class, 'upcoming'])->name('interviews.upcoming');
+        Route::post('recruiter/interviews/send-reminders', [\App\Http\Controllers\InterviewController::class, 'sendReminders'])->name('interviews.send-reminders');
     });
     
 });

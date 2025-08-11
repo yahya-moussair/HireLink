@@ -258,23 +258,67 @@ class UserController extends Controller
             });
         }
         
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
+        if ($request->filled('jobType')) {
+            $query->where('type', $request->jobType);
         }
         
-        if ($request->filled('experience_level')) {
-            $query->where('experience_level', $request->experience_level);
+        if ($request->filled('experienceLevel')) {
+            $query->where('experience_level', $request->experienceLevel);
         }
         
         if ($request->filled('location')) {
             $query->where('location', 'like', "%{$request->location}%");
         }
         
-        $jobs = $query->orderBy('created_at', 'desc')->paginate(12);
+        if ($request->filled('salaryRange') && is_array($request->salaryRange)) {
+            $query->whereBetween('salary_min', $request->salaryRange);
+        }
+        
+        if ($request->filled('skills') && is_array($request->skills)) {
+            foreach ($request->skills as $skill) {
+                $query->where(function($q) use ($skill) {
+                    $q->where('description', 'like', "%{$skill}%")
+                      ->orWhere('requirements', 'like', "%{$skill}%");
+                });
+            }
+        }
+        
+        // Handle sorting
+        $sortBy = $request->get('sortBy', 'newest');
+        switch ($sortBy) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'salary-high':
+                $query->orderBy('salary_max', 'desc');
+                break;
+            case 'salary-low':
+                $query->orderBy('salary_min', 'asc');
+                break;
+            case 'relevance':
+                // For relevance, we could implement a scoring system
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+        
+        $jobs = $query->paginate(12);
         
         return Inertia::render('user/Jobs/Search', [
             'jobs' => $jobs,
-            'filters' => $request->only(['search', 'type', 'experience_level', 'location'])
+            'filters' => $request->only(['search', 'type', 'experience_level', 'location', 'salaryRange', 'skills', 'sortBy']),
+            'pagination' => [
+                'current_page' => $jobs->currentPage(),
+                'last_page' => $jobs->lastPage(),
+                'per_page' => $jobs->perPage(),
+                'total' => $jobs->total(),
+                'from' => $jobs->firstItem(),
+                'to' => $jobs->lastItem(),
+                'prev_page_url' => $jobs->previousPageUrl(),
+                'next_page_url' => $jobs->nextPageUrl(),
+            ]
         ]);
     }
 
