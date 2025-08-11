@@ -108,7 +108,7 @@ const UserDashboard = ({ user, recommendedJobs, recentActivity, stats }) => {
                                         <Button 
                                             variant="ghost" 
                                             className="w-full justify-start text-left h-auto py-3 px-3 hover:bg-gray-100"
-                                            onClick={() => handleNavigation(route('user.jobs.search'))}
+                                            onClick={() => handleNavigation(route('user.jobs.index'))}
                                         >
                                             <Briefcase className="h-5 w-5 mr-3 text-gray-600" />
                                             <div className="text-left">
@@ -132,7 +132,7 @@ const UserDashboard = ({ user, recommendedJobs, recentActivity, stats }) => {
                                         <Button 
                                             variant="ghost" 
                                             className="w-full justify-start text-left h-auto py-3 px-3 hover:bg-gray-100"
-                                            onClick={() => handleNavigation(route('user.messages.index'))}
+                                            onClick={() => handleNavigation('/chatify')}
                                         >
                                             <MessageSquare className="h-5 w-5 mr-3 text-gray-600" />
                                             <div className="text-left">

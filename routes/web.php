@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Mail;
 
-Route::get('/', function () {
-    return Inertia::render('Home/Home');
-})->name('home');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Test email route (remove in production)
 Route::get('/test-email', function () {

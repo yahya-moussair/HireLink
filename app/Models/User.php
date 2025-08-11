@@ -15,6 +15,15 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Attributes that should be appended to model's array / JSON form.
+     * Ensures frontend receives fully-qualified image URLs.
+     */
+    protected $appends = [
+        'profile_picture_url',
+        'avatar_url',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -154,6 +163,23 @@ class User extends Authenticatable
             return asset('storage/' . $this->profile_picture);
         }
         return null;
+    }
+
+    /**
+     * Get the user's avatar URL (Chatify avatar stored in public disk).
+     */
+    public function getAvatarUrlAttribute()
+    {
+        $folder = config('chatify.user_avatar.folder', 'users-avatar');
+        $default = config('chatify.user_avatar.default', 'avatar.png');
+
+        $avatarFile = $this->avatar ?: $default;
+        // If user has a custom uploaded avatar file, point to storage path
+        if ($this->avatar && $this->avatar !== $default) {
+            return asset('storage/' . trim($folder, '/'). '/' . $avatarFile);
+        }
+        // Fallback to a public image that exists
+        return asset('images/logo.png');
     }
 
     /**

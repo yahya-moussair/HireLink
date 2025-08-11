@@ -36,7 +36,7 @@ const CandidatesIndex = ({ candidates, filters }) => {
     };
 
     const handleSendMessage = (candidateId) => {
-        router.get(route('recruiter.messages.show', candidateId));
+        router.get(`/chatify/${candidateId}`);
     };
 
     return (

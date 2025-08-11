@@ -226,16 +226,152 @@ class UserController extends Controller
     /**
      * Display all available jobs.
      */
-    public function jobs()
+    public function jobs(Request $request)
     {
-        $jobs = Job::where('status', 'active')
+        $query = Job::where('status', 'active')
             ->where('deadline', '>', now())
-            ->with('recruiter')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+            ->with('recruiter');
+            
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($request->filled('jobType') && $request->jobType !== 'all') {
+            $query->where('type', $request->jobType);
+        }
+        
+        if ($request->filled('experienceLevel') && $request->experienceLevel !== 'all') {
+            $query->where('experience_level', $request->experienceLevel);
+        }
+        
+        if ($request->filled('location')) {
+            $query->where('location', 'like', "%{$request->location}%");
+        }
+        
+        if ($request->filled('salaryRange') && $request->salaryRange !== 'all') {
+            if (is_array($request->salaryRange)) {
+                $query->whereBetween('salary_min', $request->salaryRange);
+            } elseif (is_string($request->salaryRange)) {
+                // Handle string-based salary ranges
+                switch ($request->salaryRange) {
+                    case '0-50000':
+                        $query->where('salary_min', '<=', 50000);
+                        break;
+                    case '50000-100000':
+                        $query->where('salary_min', '>=', 50000)->where('salary_min', '<=', 100000);
+                        break;
+                    case '100000-150000':
+                        $query->where('salary_min', '>=', 100000)->where('salary_min', '<=', 150000);
+                        break;
+                    case '150000+':
+                        $query->where('salary_min', '>=', 150000);
+                        break;
+                }
+            }
+        }
+        
+        if ($request->filled('skills') && is_array($request->skills) && !empty($request->skills)) {
+            foreach ($request->skills as $skill) {
+                $query->where(function($q) use ($skill) {
+                    $q->where('description', 'like', "%{$skill}%")
+                      ->orWhere('requirements', 'like', "%{$skill}%");
+                });
+            }
+        }
+        
+        // Handle sorting
+        $sortBy = $request->get('sortBy', 'newest');
+        switch ($sortBy) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'salary-high':
+                $query->orderBy('salary_max', 'desc');
+                break;
+            case 'salary-low':
+                $query->orderBy('salary_min', 'asc');
+                break;
+            case 'relevance':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+        
+        $jobs = $query->paginate(12);
+
+        // Get dynamic filter data
+        $jobTypes = Job::query()
+            ->select('type')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->distinct()
+            ->pluck('type')
+            ->values();
+
+        $experienceLevels = Job::query()
+            ->select('experience_level')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->distinct()
+            ->pluck('experience_level')
+            ->values();
+
+        $availableSkills = Job::query()
+            ->select('skills')
+            ->whereNotNull('skills')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->get()
+            ->flatMap(function ($job) {
+                $skills = $job->skills;
+                if (is_string($skills)) {
+                    $decoded = json_decode($skills, true);
+                    return is_array($decoded) ? $decoded : [];
+                }
+                return is_array($skills) ? $skills : [];
+            })
+            ->filter()
+            ->map(fn($s) => trim((string) $s))
+            ->unique()
+            ->sort()
+            ->values();
+            
+        // Get current filters from request
+        $filters = [
+            'search' => $request->get('search', ''),
+            'location' => $request->get('location', ''),
+            'jobType' => $request->get('jobType', 'all'),
+            'experienceLevel' => $request->get('experienceLevel', 'all'),
+            'salaryRange' => $request->get('salaryRange', 'all'),
+            'skills' => $request->get('skills', []),
+            'sortBy' => $request->get('sortBy', 'newest'),
+        ];
             
         return Inertia::render('user/Jobs/Index', [
-            'jobs' => $jobs
+            'jobs' => $jobs,
+            'filters' => $filters,
+            'jobTypes' => $jobTypes,
+            'experienceLevels' => $experienceLevels,
+            'availableSkills' => $availableSkills,
+            'pagination' => [
+                'current_page' => $jobs->currentPage(),
+                'last_page' => $jobs->lastPage(),
+                'per_page' => $jobs->perPage(),
+                'total' => $jobs->total(),
+                'from' => $jobs->firstItem(),
+                'to' => $jobs->lastItem(),
+                'prev_page_url' => $jobs->previousPageUrl(),
+                'next_page_url' => $jobs->nextPageUrl(),
+            ],
         ]);
     }
 
@@ -270,8 +406,26 @@ class UserController extends Controller
             $query->where('location', 'like', "%{$request->location}%");
         }
         
-        if ($request->filled('salaryRange') && is_array($request->salaryRange)) {
-            $query->whereBetween('salary_min', $request->salaryRange);
+        if ($request->filled('salaryRange') && $request->salaryRange !== 'all') {
+            if (is_array($request->salaryRange)) {
+                $query->whereBetween('salary_min', $request->salaryRange);
+            } elseif (is_string($request->salaryRange)) {
+                // Handle string-based salary ranges
+                switch ($request->salaryRange) {
+                    case '0-50000':
+                        $query->where('salary_min', '<=', 50000);
+                        break;
+                    case '50000-100000':
+                        $query->where('salary_min', '>=', 50000)->where('salary_min', '<=', 100000);
+                        break;
+                    case '100000-150000':
+                        $query->where('salary_min', '>=', 100000)->where('salary_min', '<=', 150000);
+                        break;
+                    case '150000+':
+                        $query->where('salary_min', '>=', 150000);
+                        break;
+                }
+            }
         }
         
         if ($request->filled('skills') && is_array($request->skills)) {
@@ -305,6 +459,43 @@ class UserController extends Controller
         }
         
         $jobs = $query->paginate(12);
+
+        // Dynamic filter data
+        $jobTypes = Job::query()
+            ->select('type')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->distinct()
+            ->pluck('type')
+            ->values();
+
+        $experienceLevels = Job::query()
+            ->select('experience_level')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->distinct()
+            ->pluck('experience_level')
+            ->values();
+
+        $availableSkills = Job::query()
+            ->select('skills')
+            ->whereNotNull('skills')
+            ->where('status', 'active')
+            ->where('deadline', '>', now())
+            ->get()
+            ->flatMap(function ($job) {
+                $skills = $job->skills;
+                if (is_string($skills)) {
+                    $decoded = json_decode($skills, true);
+                    return is_array($decoded) ? $decoded : [];
+                }
+                return is_array($skills) ? $skills : [];
+            })
+            ->filter()
+            ->map(fn($s) => trim((string) $s))
+            ->unique()
+            ->sort()
+            ->values();
         
         return Inertia::render('user/Jobs/Search', [
             'jobs' => $jobs,
@@ -318,7 +509,10 @@ class UserController extends Controller
                 'to' => $jobs->lastItem(),
                 'prev_page_url' => $jobs->previousPageUrl(),
                 'next_page_url' => $jobs->nextPageUrl(),
-            ]
+            ],
+            'jobTypes' => $jobTypes,
+            'experienceLevels' => $experienceLevels,
+            'availableSkills' => $availableSkills,
         ]);
     }
 
@@ -369,16 +563,56 @@ class UserController extends Controller
     /**
      * Display user's job applications.
      */
-    public function applications()
+    public function applications(Request $request)
     {
         $user = Auth::user();
-        $applications = JobApplication::where('user_id', $user->id)
-            ->with(['job.recruiter'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = JobApplication::where('user_id', $user->id)
+            ->with(['job.recruiter']);
+            
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('job', function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+        
+        // Handle sorting
+        $sortBy = $request->get('sortBy', 'newest');
+        switch ($sortBy) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'status':
+                $query->orderBy('status', 'asc');
+                break;
+            case 'company':
+                $query->whereHas('job', function($q) {
+                    $q->orderBy('company_name', 'asc');
+                });
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+        
+        $applications = $query->paginate(10);
+        
+        // Get current filters from request
+        $filters = [
+            'status' => $request->get('status', ''),
+            'search' => $request->get('search', ''),
+            'sortBy' => $request->get('sortBy', 'newest'),
+        ];
             
         return Inertia::render('user/Applications/Index', [
-            'applications' => $applications
+            'applications' => $applications,
+            'filters' => $filters,
         ]);
     }
 
@@ -439,14 +673,8 @@ class UserController extends Controller
      */
     public function messages()
     {
-        $user = Auth::user();
-        
-        // Get conversations (this would integrate with Chatify)
-        $conversations = collect(); // Placeholder for Chatify integration
-        
-        return Inertia::render('user/Messages/Index', [
-            'conversations' => $conversations
-        ]);
+        // Redirect to Chatify main page for messaging
+        return redirect()->route(config('chatify.routes.prefix'));
     }
 
     /**
@@ -454,13 +682,8 @@ class UserController extends Controller
      */
     public function showConversation(User $otherUser)
     {
-        $user = Auth::user();
-        
-        // This would integrate with Chatify
-        return Inertia::render('user/Messages/Show', [
-            'otherUser' => $otherUser,
-            'messages' => collect() // Placeholder for Chatify messages
-        ]);
+        // Deep link to the Chatify conversation with the other user
+        return redirect(config('chatify.routes.prefix') . '/' . $otherUser->id);
     }
 
     /**
@@ -468,14 +691,8 @@ class UserController extends Controller
      */
     public function sendMessage(Request $request, User $otherUser)
     {
-        $validated = $request->validate([
-            'message' => 'required|string|max:1000',
-        ]);
-        
-        // This would integrate with Chatify
-        // For now, just return success
-        
-        return back()->with('success', 'Message sent successfully!');
+        // Delegate to Chatify – frontends that call this can be redirected
+        return redirect()->to(url(config('chatify.routes.prefix') . '/' . $otherUser->id));
     }
 
     /**

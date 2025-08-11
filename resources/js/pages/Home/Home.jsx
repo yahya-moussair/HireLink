@@ -5,17 +5,17 @@ import Testimonials from '../../components/home/testimonials';
 import Footer from '../layouts/Footer';
 import Navbar from '../layouts/Navbar';
 
-const Home = () => {
+const Home = ({ testimonials = [], features = [], statistics = [], siteSettings = {} }) => {
     return (
         <>
             <Navbar />
             <div className="bg-[linear-gradient(135deg,#EAF4FF,#F5F6FA)]">
-                <Hero />
-                <Features />
-                <Testimonials />
+                <Hero siteSettings={siteSettings} statistics={statistics} />
+                <Features features={features} />
+                <Testimonials testimonials={testimonials} />
                 <FaQ />
             </div>
-            <Footer />
+            <Footer siteSettings={siteSettings} />
         </>
     );
 };

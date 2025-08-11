@@ -49,6 +49,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Restrict login to only admin, recruiter, and user roles
+        $allowedRoles = ['admin', 'recruiter', 'user'];
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Your account does not have permission to log in.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -1,19 +1,46 @@
 import { Link } from '@inertiajs/react';
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck, Briefcase, Building, Users, CheckCircle } from 'lucide-react';
 import { Images } from '../../constant';
 
-const Hero = () => {
+const Hero = ({ siteSettings = {}, statistics = [] }) => {
+    // Icon mapping for statistics
+    const iconMap = {
+        'Briefcase': Briefcase,
+        'Building': Building,
+        'Users': Users,
+        'CheckCircle': CheckCircle,
+    };
+
     return (
         <>
             <div className="flex w-full flex-col-reverse items-center gap-10 px-2 pt-10 md:flex-row md:px-25 md:pt-40 lg:flex-row lg:px-30 lg:pt-50">
                 <div className="flex w-full flex-col gap-8 md:w-1/2 lg:w-1/2">
                     <h1 className="text-center lg:text-4xl text-3xl  font-extrabold text-[#00193f] md:text-start lg:text-start">
-                        Connect With Opportunity, Faster.
+                        {siteSettings.hero_title || 'Connect With Opportunity, Faster.'}
                     </h1>
                     <h3 className="text-center text-xl font-bold text-[#00193f] md:text-start lg:text-start">
-                        Discover your next job, build your career, and connect with professionals — all in one place.
+                        {siteSettings.hero_subtitle || 'Discover your next job, build your career, and connect with professionals — all in one place.'}
                     </h3>
-                    <ul class="space-y-5 ps-5 text-base text-gray-600 md:ps-10 lg:ps-10">
+                    
+                    {/* Statistics Section */}
+                    {statistics.length > 0 && (
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                            {statistics.map((stat, index) => {
+                                const Icon = iconMap[stat.icon] || Briefcase;
+                                return (
+                                    <div key={index} className="text-center">
+                                        <div className="flex items-center justify-center mb-2">
+                                            <Icon className="h-6 w-6" style={{ color: stat.color }} />
+                                        </div>
+                                        <div className="text-2xl font-bold text-[#00193f]">{stat.value.toLocaleString()}</div>
+                                        <div className="text-sm text-gray-600">{stat.label}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    <ul className="space-y-5 ps-5 text-base text-gray-600 md:ps-10 lg:ps-10">
                         <li className="flex items-center gap-4">
                             <CircleCheck /> Search and apply to thousands of verified job offers
                         </li>

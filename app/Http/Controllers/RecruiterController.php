@@ -333,28 +333,44 @@ class RecruiterController extends Controller
     /**
      * Display conversation with a user.
      */
-    public function showConversation(User $otherUser)
+    public function showConversation(User $user)
     {
-        $user = auth()->user();
-        
+        $authUser = auth()->user();
+        // Fetch messages using Chatify logic
+        $messages = \App\Models\ChMessage::where(function($q) use ($authUser, $user) {
+            $q->where('from_id', $authUser->id)->where('to_id', $user->id);
+        })->orWhere(function($q) use ($authUser, $user) {
+            $q->where('from_id', $user->id)->where('to_id', $authUser->id);
+        })->orderBy('created_at', 'asc')->get();
+
         return Inertia::render('recruiter/Messages/Show', [
-            'otherUser' => $otherUser,
-            'messages' => collect() // Placeholder for Chatify messages
+            'otherUser' => $user->fresh()->toArray(),
+            'messages' => $messages,
+            'user' => $authUser->toArray(),
         ]);
     }
 
     /**
      * Send a message.
      */
-    public function sendMessage(Request $request, User $otherUser)
+    public function sendMessage(Request $request, User $user)
     {
         $validated = $request->validate([
             'message' => 'required|string|max:1000',
         ]);
-        
-        // This would integrate with Chatify
-        // For now, just return success
-        
+
+        $recruiter = auth()->user();
+
+        // Create the message
+        $message = \App\Models\ChMessage::create([
+            'from_id' => $recruiter->id,
+            'to_id' => $user->id,
+            'body' => $validated['message'],
+        ]);
+
+        // Optionally, trigger a pusher/broadcast event here for real-time updates
+        // event(new \App\Events\MessageSent($message));
+
         return back()->with('success', 'Message sent successfully!');
     }
 

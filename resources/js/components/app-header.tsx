@@ -16,11 +16,10 @@ import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
+    { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
+    { title: 'Jobs', href: '/user/jobs', icon: LayoutGrid },
+    { title: 'Search Jobs', href: '/user/jobs/search', icon: Search },
+    { title: 'Applications', href: '/user/applications', icon: Folder },
 ];
 
 const rightNavItems: NavItem[] = [
@@ -156,9 +155,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="size-10 rounded-full p-1">
                                     <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarImage src={auth.user?.avatar_url || auth.user?.profile_picture_url} alt={auth.user?.name} />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
+                                            {getInitials(auth.user?.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

@@ -21,7 +21,7 @@ const breadcrumbs = [
     },
 ];
 
-const RecruitersIndex = ({ recruiters, filters }) => {
+const RecruitersIndex = ({ recruiters, filters = {} }) => {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || '');
     const [deleteRecruiter, setDeleteRecruiter] = useState(null);

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { router } from '@inertiajs/react';
 import { 
     Briefcase, Calendar, Clock, MapPin, Building, CheckCircle, 
-    XCircle, AlertCircle, Clock as ClockIcon, Eye, MessageSquare
+    XCircle, AlertCircle, Clock as ClockIcon, Eye, MessageSquare, Search
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,57 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const ApplicationsIndex = ({ applications, filters, pagination }) => {
+const ApplicationsIndex = ({ applications, filters = {}, pagination }) => {
     const [statusFilter, setStatusFilter] = useState(filters?.status || '');
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [sortBy, setSortBy] = useState(filters?.sortBy || 'newest');
+
+    const handleSearch = () => {
+        router.get(route('user.applications.index'), {
+            search: searchTerm,
+            status: statusFilter,
+            sortBy: sortBy,
+        }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handleClearFilters = () => {
+        setStatusFilter('');
+        setSearchTerm('');
+        setSortBy('newest');
+        
+        router.get(route('user.applications.index'), {}, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handleFilterChange = (value) => {
+        const filterValue = value === 'all' ? '' : value;
+        setStatusFilter(filterValue);
+        router.get(route('user.applications.index'), {
+            search: searchTerm,
+            status: filterValue,
+            sortBy: sortBy,
+        }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handleSortChange = (value) => {
+        setSortBy(value);
+        router.get(route('user.applications.index'), {
+            search: searchTerm,
+            status: statusFilter,
+            sortBy: value,
+        }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
 
     const getStatusColor = (status) => {
         const colors = {
@@ -50,24 +98,32 @@ const ApplicationsIndex = ({ applications, filters, pagination }) => {
         console.log('Contacting recruiter for application:', applicationId);
     };
 
-    const filteredApplications = applications?.filter(app => {
+    const applicationList = (applications && Array.isArray(applications.data)) ? applications.data : (Array.isArray(applications) ? applications : []);
+    const filteredApplications = applicationList.filter(app => {
         if (statusFilter && app.status !== statusFilter) return false;
         if (searchTerm && !app.job.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
         return true;
-    }) || [];
+    });
+
+    const primaryBtn = 'bg-[#202b61] hover:bg-[#2980d1] text-white';
+    const outlinePrimaryBtn = 'border-[#202b61] text-[#202b61] hover:bg-[#202b61] hover:text-white';
+    const primaryText = 'text-[#00193f]';
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[linear-gradient(135deg,#EAF4FF,#F5F6FA)]">
             {/* Header */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">My Applications</h1>
+                            <h1 className={`text-3xl font-extrabold ${primaryText}`}>My Applications</h1>
                             <p className="text-gray-600 mt-2">Track your job applications and their status</p>
                         </div>
-                        <div className="flex items-center space-x-3">
-                            <Button variant="outline">
+                        <div className="flex items-center space-x-4">
+                            <Button variant="outline" onClick={() => router.get('/user/profile')} className={outlinePrimaryBtn}>
+                                Back to Profile
+                            </Button>
+                            <Button variant="outline" onClick={() => router.get('/user/jobs')} className={outlinePrimaryBtn}>
                                 <Briefcase className="h-4 w-4 mr-2" />
                                 Browse Jobs
                             </Button>
@@ -83,20 +139,26 @@ const ApplicationsIndex = ({ applications, filters, pagination }) => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-2 block">Search Jobs</label>
-                                <Input
-                                    placeholder="Job title or company"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Job title or company"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                    />
+                                    <Button onClick={handleSearch} size="sm">
+                                        <Search className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <Select value={statusFilter || 'all'} onValueChange={handleFilterChange}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="All statuses" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">All statuses</SelectItem>
+                                        <SelectItem value="all">All statuses</SelectItem>
                                         <SelectItem value="pending">Pending</SelectItem>
                                         <SelectItem value="reviewed">Reviewed</SelectItem>
                                         <SelectItem value="shortlisted">Shortlisted</SelectItem>
@@ -108,7 +170,7 @@ const ApplicationsIndex = ({ applications, filters, pagination }) => {
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-2 block">Sort By</label>
-                                <Select value={sortBy} onValueChange={setSortBy}>
+                                <Select value={sortBy} onValueChange={handleSortChange}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -122,11 +184,7 @@ const ApplicationsIndex = ({ applications, filters, pagination }) => {
                             <div className="flex items-end">
                                 <Button 
                                     variant="outline" 
-                                    onClick={() => {
-                                        setStatusFilter('');
-                                        setSearchTerm('');
-                                        setSortBy('newest');
-                                    }}
+                                    onClick={handleClearFilters}
                                     className="w-full"
                                 >
                                     Clear Filters

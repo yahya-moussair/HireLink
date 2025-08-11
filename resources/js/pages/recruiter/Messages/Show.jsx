@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
-const MessageShow = ({ conversation, otherUser, messages, user }) => {
+const RecruiterMessageShow = ({ otherUser, messages, user }) => {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef(null);
@@ -25,8 +25,14 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
 
     const handleSendMessage = () => {
         if (newMessage.trim() && !isSending) {
+            if (!otherUser || !otherUser.id) {
+                alert('User ID is missing. Cannot send message.');
+                console.log('otherUser:', otherUser);
+                return;
+            }
             setIsSending(true);
-            router.post(route('user.messages.send', otherUser.id), {
+            console.log('otherUser:', otherUser, 'otherUser.id:', otherUser.id);
+            router.post(route('recruiter.messages.send', { user: otherUser.id }), {
                 message: newMessage
             }, {
                 onSuccess: () => {
@@ -51,7 +57,6 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
         const date = new Date(timestamp);
         const now = new Date();
         const diffInHours = (now - date) / (1000 * 60 * 60);
-        
         if (diffInHours < 24) {
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         } else if (diffInHours < 48) {
@@ -76,16 +81,16 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
                                 <ArrowLeft className="h-4 w-4 mr-2" />
                                 Back to Messages
                             </Button>
-                            <div className="flex items-center space-x-3">
+                             <div className="flex items-center space-x-3">
                                 <Avatar className="w-10 h-10">
-                                    <AvatarImage src={otherUser.profile_picture_url} />
+                                    <AvatarImage src={otherUser.avatar_url || otherUser.profile_picture_url} />
                                     <AvatarFallback className="bg-[#202b61] text-white">
                                         {otherUser.name?.split(' ').map(n => n[0]).join('')}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <h1 className="text-lg font-semibold text-[#00193f]">{otherUser.name}</h1>
-                                    <p className="text-sm text-[#202b61]">{otherUser.Specialization || 'Recruiter'}</p>
+                                    <p className="text-sm text-[#202b61]">{otherUser.Specialization || 'User'}</p>
                                 </div>
                             </div>
                         </div>
@@ -114,11 +119,10 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
                         <div className="flex-1 overflow-y-auto p-6 space-y-4">
                             {messages && messages.length > 0 ? (
                                 messages.map((message, index) => {
-                                    const isOwnMessage = message.sender_id === user.id;
+                                    const isOwnMessage = message.from_id === user.id;
                                     const showDate = index === 0 || 
                                         new Date(message.created_at).toDateString() !== 
                                         new Date(messages[index - 1].created_at).toDateString();
-
                                     return (
                                         <div key={message.id}>
                                             {showDate && (
@@ -132,7 +136,7 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
                                                 <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
                                                     {!isOwnMessage && (
                                                         <Avatar className="w-8 h-8 flex-shrink-0">
-                                                            <AvatarImage src={otherUser.profile_picture_url} />
+                                                            <AvatarImage src={otherUser.avatar_url || otherUser.profile_picture_url} />
                                                             <AvatarFallback className="bg-[#202b61] text-white text-xs">
                                                                 {otherUser.name?.split(' ').map(n => n[0]).join('')}
                                                             </AvatarFallback>
@@ -206,4 +210,4 @@ const MessageShow = ({ conversation, otherUser, messages, user }) => {
     );
 };
 
-export default MessageShow;
+export default RecruiterMessageShow;

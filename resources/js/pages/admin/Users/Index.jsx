@@ -22,7 +22,7 @@ const breadcrumbs = [
     },
 ];
 
-const UsersIndex = ({ users, filters }) => {
+const UsersIndex = ({ users, filters = {} }) => {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [roleFilter, setRoleFilter] = useState(filters.role || '');
     const [deleteUser, setDeleteUser] = useState(null);

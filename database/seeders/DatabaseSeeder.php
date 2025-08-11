@@ -18,7 +18,11 @@ class DatabaseSeeder extends Seeder
             PostSeeder::class,
             CommentSeeder::class,
             JobSeeder::class,
-            JobApplicationSeeder::class
+            JobApplicationSeeder::class,
+            SiteSettingSeeder::class,
+            FeatureSeeder::class,
+            TestimonialSeeder::class,
+            StatisticSeeder::class,
         ]);
     }
 }

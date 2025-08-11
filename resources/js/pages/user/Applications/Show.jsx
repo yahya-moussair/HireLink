@@ -153,7 +153,7 @@ const ApplicationShow = ({ application, user }) => {
                                         </Button>
                                         <Button 
                                             variant="outline" 
-                                            onClick={() => router.get(route('user.messages.show', application.job.recruiter.id))}
+                                            onClick={() => router.get(`/chatify/${application.job.recruiter.id}`)}
                                             className="border-[#202b61] text-[#202b61] hover:bg-[#202b61] hover:text-white"
                                         >
                                             <MessageSquare className="h-4 w-4 mr-2" />
@@ -335,7 +335,7 @@ const ApplicationShow = ({ application, user }) => {
                                             <Button 
                                                 variant="outline" 
                                                 className="w-full border-[#202b61] text-[#202b61] hover:bg-[#202b61] hover:text-white"
-                                                onClick={() => router.get(route('user.messages.show', application.job.recruiter.id))}
+                                                onClick={() => router.get(`/chatify/${application.job.recruiter.id}`)}
                                             >
                                                 <Mail className="h-4 w-4 mr-2" />
                                                 Send Message

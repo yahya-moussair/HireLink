@@ -72,7 +72,7 @@ const CandidateSearch = ({ candidates, filters, user }) => {
     };
 
     const handleSendMessage = (candidateId) => {
-        router.get(route('recruiter.messages.show', candidateId));
+        router.get(`/chatify/${candidateId}`);
     };
 
     const getExperienceColor = (level) => {
@@ -186,12 +186,12 @@ const CandidateSearch = ({ candidates, filters, user }) => {
                                 {/* Experience Level Filter */}
                                 <div>
                                     <h3 className="font-medium text-gray-900 mb-3">Experience Level</h3>
-                                    <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                                    <Select value={experienceLevel || 'all'} onValueChange={(v) => setExperienceLevel(v === 'all' ? '' : v)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="All levels" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">All levels</SelectItem>
+                                            <SelectItem value="all">All levels</SelectItem>
                                             <SelectItem value="entry">Entry Level</SelectItem>
                                             <SelectItem value="mid">Mid Level</SelectItem>
                                             <SelectItem value="senior">Senior Level</SelectItem>
