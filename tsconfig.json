@@ -117,6 +117,6 @@
     "include": [
         "resources/js/**/*.ts",
         "resources/js/**/*.d.ts",
-        "resources/js/**/*.tsx",
+        "resources/js/**/*.tsx", "resources/js/ssr.jsx", "resources/js/app.jsx", "resources/js/pages/welcome.jsx", "resources/js/pages/dashboard.jsx", "resources/js/pages/settings/profile.jsx", "resources/js/pages/settings/password.jsx", "resources/js/pages/settings/appearance.jsx", "resources/js/pages/auth/verify-email.jsx", "resources/js/pages/auth/reset-password.jsx", "resources/js/pages/auth/register.jsx", "resources/js/pages/auth/login.jsx", "resources/js/pages/auth/forgot-password.jsx", "resources/js/pages/auth/confirm-password.jsx", "resources/js/layouts/auth-layout.jsx", "resources/js/layouts/app-layout.jsx", "resources/js/layouts/settings/layout.jsx", "resources/js/layouts/auth/auth-split-layout.jsx", "resources/js/layouts/auth/auth-simple-layout.jsx", "resources/js/layouts/auth/auth-card-layout.jsx", "resources/js/layouts/app/app-sidebar-layout.jsx", "resources/js/layouts/app/app-header-layout.jsx", "resources/js/hooks/use-mobile.tsx",
     ]
 }

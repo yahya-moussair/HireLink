@@ -1,8 +1,26 @@
 @import 'tailwindcss';
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+.animation {
+    transition: 300ms;
+}
+.button-style {
+    background-color: #ac8ffd;
+    color: white;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+.button-style:hover {
+    background-color: #9974ff89;
+    cursor: pointer;
+    transition: 300ms;
+}
 
 @plugin 'tailwindcss-animate';
 
-@source '../views';
+/* @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -138,4 +156,4 @@
     body {
         @apply bg-background text-foreground;
     }
-}
+} */
