@@ -4,7 +4,7 @@
 } */
 body{
     background-color: white;
-    height: 300vh;
+    height: 500vh;
 }
 .animation {
     transition: 300ms;

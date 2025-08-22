@@ -1,6 +1,7 @@
 import Hero from '../components/welcome/Hero';
 import Navbar from '../components/welcome/Navbar';
 import SecondSection from '../components/welcome/SecondSection';
+import ThisrdSecrtion from '../components/welcome/ThisrdSecrtion';
 
 const Welcome = () => {
     return (
@@ -11,6 +12,7 @@ const Welcome = () => {
                     <Hero />
                 </div>
                 <SecondSection />
+                <ThisrdSecrtion />
             </div>
         </>
     );
