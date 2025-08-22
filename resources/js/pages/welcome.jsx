@@ -1,11 +1,16 @@
-import React from 'react';
-import Navbar from '../components/welcome/Navbar'
+import Hero from '../components/welcome/Hero';
+import Navbar from '../components/welcome/Navbar';
+import SecondSection from '../components/welcome/SecondSection';
 
 const Welcome = () => {
     return (
         <>
-            <div className='h-screen w-full bg-gradient-to-b from-[#02003e] to-[#450b97]'>
-                <Navbar />
+            <div>
+                <div className=" w-full rounded-b-2xl bg-gradient-to-b from-[#02003e] to-[#450b97]">
+                    <Navbar />
+                    <Hero />
+                </div>
+                <SecondSection />
             </div>
         </>
     );
