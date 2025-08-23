@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import cards from './cards';
+import {cards} from './welcome';
 const SecondSection = () => {
     return (
         <>

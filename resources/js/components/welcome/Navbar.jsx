@@ -14,10 +14,10 @@ const Navbar = () => {
     };
     return (
         <>
-            <div className="fixed z-50 flex w-full items-center justify-between bg-[#080147] px-20 py-5">
+            <div className="fixed z-50 flex w-full items-center justify-between bg-[#080147] p-5">
                 <div>
                     <Link to="">
-                        <img src={images.logo} className="animation w-45 hover:scale-110" alt="" />
+                        <img src={images.logo} className="animation w-35 hover:scale-110" alt="" />
                     </Link>
                 </div>
                 <nav
